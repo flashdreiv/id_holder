@@ -2,6 +2,7 @@ export interface ICard {
   id: string;
   name: string;
   logo: string;
+  image?: string;
 }
 
 const defaultData: ICard[] = [
@@ -44,19 +45,19 @@ export const initDB = (): Promise<boolean> => {
     };
 
     request.onsuccess = () => {
-      const db = request.result;
-      const tx = db.transaction("cards", "readwrite");
-      const cards = tx.objectStore("cards");
-      defaultData.forEach((card) => {
-        cards.put(card);
-      });
+      // const db = request.result;
+      // const tx = db.transaction("cards", "readwrite");
+      // const cards = tx.objectStore("cards");
+      // defaultData.forEach((card) => {
+      //   cards.put(card);
+      // });
 
-      tx.oncomplete = () => {
-        console.log("Transaction completed");
-      };
-      tx.onerror = () => {
-        console.log("Transaction completed");
-      };
+      // tx.oncomplete = () => {
+      //   console.log("Transaction completed");
+      // };
+      // tx.onerror = () => {
+      //   console.log("Transaction completed");
+      // };
       resolve(true);
     };
 

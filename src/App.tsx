@@ -6,10 +6,12 @@ import {
   CardHeader,
   CardTitle,
 } from "./components/ui/card";
+
 import { Input } from "./components/ui/input";
-import { Button } from "./components/ui/button";
-import { Loader2, Plus } from "lucide-react";
+
+import { Loader2 } from "lucide-react";
 import { getAllCards, initDB, type ICard } from "./lib/db";
+import Footer from "./components/ui/Footer";
 
 function App() {
   const [isDBReady, setIsDBReady] = useState<boolean>(false);
@@ -72,11 +74,7 @@ function App() {
         ) : (
           <Loader2 className="size-10 animate-spin text-blue-500 m-auto mt-[50%]" />
         )}
-        <footer className="fixed bottom-10 left-1/2 transform -translate-x-1/2">
-          <Button className="size-12 sm:size-20 p-0 rounded-full flex items-center justify-center">
-            <Plus className="size-5 sm:size-7" />
-          </Button>
-        </footer>
+        <Footer />
       </main>
     </>
   );
