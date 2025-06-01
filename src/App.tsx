@@ -18,10 +18,7 @@ function App() {
 
   const [cards, setCards] = useState<ICard[]>([]);
 
-  const isDataReady = useMemo(
-    () => isDBReady && cards.length > 0,
-    [isDBReady, cards]
-  );
+  const isDataReady = useMemo(() => isDBReady, [isDBReady]);
 
   const handleInitDB = async () => {
     const status = await initDB();
@@ -43,23 +40,27 @@ function App() {
   }, []);
 
   const renderCards = () => {
-    return cards.map((card) => (
-      <Card key={card.id} className="w-full flex py-3 cursor-pointer">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div className="flex flex-col gap-1">
-              <CardTitle>{card.name}</CardTitle>
-              <CardDescription>{card.id}</CardDescription>
+    return cards.length ? (
+      cards.map((card) => (
+        <Card key={card.id} className="w-full flex py-3 cursor-pointer">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div className="flex flex-col gap-1">
+                <CardTitle>{card.name}</CardTitle>
+                <CardDescription>{card.id}</CardDescription>
+              </div>
+              <img
+                src={card.logo}
+                alt={`${card.name} Logo`}
+                className="size-12 md:size-15"
+              />
             </div>
-            <img
-              src={card.logo}
-              alt={`${card.name} Logo`}
-              className="size-12 md:size-15"
-            />
-          </div>
-        </CardHeader>
-      </Card>
-    ));
+          </CardHeader>
+        </Card>
+      ))
+    ) : (
+      <div className="text-center text-gray-500">No cards found</div>
+    );
   };
   return (
     <>
@@ -74,7 +75,7 @@ function App() {
         ) : (
           <Loader2 className="size-10 animate-spin text-blue-500 m-auto mt-[50%]" />
         )}
-        <Footer />
+        <Footer onAddCard={loadCards} />
       </main>
     </>
   );

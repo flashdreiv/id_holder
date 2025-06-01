@@ -12,4 +12,4 @@ export const GOV_CARDS = [
   { name: "Driver's License", logo: "./src/assets/lto.png" },
   { name: "SSS", logo: "./src/assets/sss.svg" },
   { name: "National ID", logo: "/logos/psa.png" },
-] as const;
+];
