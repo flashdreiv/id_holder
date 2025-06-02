@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { CalendarIcon, Plus } from "lucide-react";
 import { Button } from "./button";
 import {
   Dialog,
@@ -30,57 +30,53 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { CARD_TYPE_NAMES, GOV_CARDS } from "@/constants";
-import { fileToBase64 } from "@/lib/utils";
+import { cn, fileToBase64 } from "@/lib/utils";
 import { addCard } from "@/lib/db";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { Separator } from "./separator";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@radix-ui/react-popover";
+import { format } from "date-fns";
+import { Calendar } from "./calendar";
 
 type FooterProps = {
   onAddCard: () => Promise<void>;
 };
 
+const CardFormSchema = z.object({
+  id: z.string().min(2).max(50),
+  cardType: z.enum(CARD_TYPE_NAMES, {
+    errorMap: () => ({ message: "Please select a card type" }),
+  }),
+  dov: z.date().optional(),
+  frontPicture: z
+    .instanceof(File)
+    .refine((file) => file.type.startsWith("image/"), {
+      message: "File must be an image",
+    })
+    .refine((file) => file.size <= 5 * 1024 * 1024, {
+      message: "Image must be smaller than 5MB",
+    })
+    .optional(),
+  backPicture: z
+    .instanceof(File)
+    .refine((file) => file.type.startsWith("image/"), {
+      message: "File must be an image",
+    })
+    .refine((file) => file.size <= 5 * 1024 * 1024, {
+      message: "Image must be smaller than 5MB",
+    })
+    .optional(),
+});
+
+type CardFormValues = z.infer<typeof CardFormSchema>;
+
 const Footer = ({ onAddCard }: FooterProps) => {
-  const CardFormSchema = z.object({
-    id: z.string().min(2).max(50),
-    cardType: z.enum(CARD_TYPE_NAMES, {
-      errorMap: () => ({ message: "Please select a card type" }),
-    }),
-    frontPicture: z
-      .instanceof(File)
-      .refine((file) => file.type.startsWith("image/"), {
-        message: "File must be an image",
-      })
-      .refine((file) => file.size <= 5 * 1024 * 1024, {
-        message: "Image must be smaller than 5MB",
-      }),
-    backPicture: z
-      .instanceof(File)
-      .refine((file) => file.type.startsWith("image/"), {
-        message: "File must be an image",
-      })
-      .refine((file) => file.size <= 5 * 1024 * 1024, {
-        message: "Image must be smaller than 5MB",
-      })
-      .optional(),
-  });
-
-  async function onSubmit(values: z.infer<typeof CardFormSchema>) {
-    const frontImgBase64 = await fileToBase64(values.frontPicture);
-    const backImgBase64 = values.backPicture
-      ? await fileToBase64(values.backPicture)
-      : undefined;
-    await addCard({
-      id: values.id,
-      name: values.cardType,
-      logo: GOV_CARDS.find((card) => card.name === values.cardType)?.logo || "",
-      frontPicture: frontImgBase64,
-      backPicture: backImgBase64,
-    });
-    await onAddCard();
-    form.reset();
-  }
-
-  const form = useForm<z.infer<typeof CardFormSchema>>({
+  const form = useForm<CardFormValues>({
     resolver: zodResolver(CardFormSchema),
     defaultValues: {
       id: "",
@@ -89,6 +85,25 @@ const Footer = ({ onAddCard }: FooterProps) => {
       backPicture: undefined,
     },
   });
+
+  async function onSubmit(values: CardFormValues) {
+    const frontImgBase64 = values.frontPicture
+      ? await fileToBase64(values.frontPicture)
+      : undefined;
+    const backImgBase64 = values.backPicture
+      ? await fileToBase64(values.backPicture)
+      : undefined;
+    await addCard({
+      id: values.id,
+      name: values.cardType,
+      type: values.cardType,
+      logo: GOV_CARDS.find((card) => card.name === values.cardType)?.logo || "",
+      frontPicture: frontImgBase64,
+      backPicture: backImgBase64,
+    });
+    await onAddCard();
+    form.reset();
+  }
 
   return (
     <footer className="fixed bottom-10 left-1/2 transform -translate-x-1/2">
@@ -102,7 +117,9 @@ const Footer = ({ onAddCard }: FooterProps) => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <DialogHeader className="text-left">
-                <DialogTitle>Add Card</DialogTitle>
+                <DialogTitle>
+                  <b>Add Card</b>
+                </DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <FormField
@@ -147,12 +164,59 @@ const Footer = ({ onAddCard }: FooterProps) => {
                     </FormItem>
                   )}
                 />
-                <h1>Upload Section</h1>
+                <FormField
+                  control={form.control}
+                  name="dov"
+                  render={({ field }) => (
+                    <FormItem className="grid grid-cols-1 items-center gap-4">
+                      <FormLabel>Valid Until</FormLabel>
+                      <FormControl>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "pl-3 text-left font-normal w-full",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-auto p-0 bg-white bg-opacity-90 shadow-lg z-5"
+                            align="start"
+                          >
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <h1 className="text-md font-semibold text-gray-700">
+                  <b>Upload Section</b>
+                </h1>
                 <Separator />
                 <FormField
                   control={form.control}
                   name="frontPicture"
-                  render={({ field: { value, onChange, ...fieldProps } }) => (
+                  render={(
+                    { field: { onChange, value, ...fieldProps } } // eslint-disable-line @typescript-eslint/no-unused-vars
+                  ) => (
                     <FormItem className="grid grid-cols-1 items-center gap-4">
                       <FormLabel>Front Image</FormLabel>
                       <FormControl>
@@ -174,7 +238,9 @@ const Footer = ({ onAddCard }: FooterProps) => {
                 <FormField
                   control={form.control}
                   name="backPicture"
-                  render={({ field: { value, onChange, ...fieldProps } }) => (
+                  render={(
+                    { field: { onChange, value, ...fieldProps } } // eslint-disable-line @typescript-eslint/no-unused-vars
+                  ) => (
                     <FormItem className="grid grid-cols-1 items-center gap-4">
                       <FormLabel>Back Image</FormLabel>
                       <FormControl>
@@ -196,12 +262,14 @@ const Footer = ({ onAddCard }: FooterProps) => {
               </div>
               <DialogFooter>
                 {!form.formState.isValid ? (
-                  <Button type="submit" disabled>
+                  <Button disabled className="w-full">
                     Save changes
                   </Button>
                 ) : (
                   <DialogClose asChild>
-                    <Button type="submit">Save changes</Button>
+                    <Button type="submit" className="w-full">
+                      Save changes
+                    </Button>
                   </DialogClose>
                 )}
               </DialogFooter>
