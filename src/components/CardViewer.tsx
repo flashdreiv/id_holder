@@ -16,17 +16,11 @@ import {
   Trash2,
   Loader2,
   PencilIcon,
-  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ICard } from "@/lib/db";
 import { Link } from "react-router-dom";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 interface CardViewerProps {
   card: ICard;
