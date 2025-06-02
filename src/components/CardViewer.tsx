@@ -21,7 +21,12 @@ import {
 import { cn } from "@/lib/utils";
 import type { ICard } from "@/lib/db";
 import { Link } from "react-router-dom";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 interface CardViewerProps {
   card: ICard;
@@ -132,31 +137,27 @@ export function CardViewer({
                   </div>
                 </div>
               </DialogTrigger>
-              <DialogContent className="max-w-[95vw] h-[85vh] p-0 overflow-hidden">
+              <DialogContent className="max-w-screen-lg w-[95vw] h-[90vh] p-0">
                 <div className="relative w-full h-full bg-black/95 flex items-center justify-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 z-50 text-white hover:bg-white/20"
-                    onClick={() => setIsPreviewOpen(false)}
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
-                  <img
-                    src={
-                      imageType === "front"
-                        ? card.frontPicture
-                        : card.backPicture
-                    }
-                    alt={`${
-                      imageType === "front" ? "Front" : "Back"
-                    } of the card`}
-                    className="max-w-full max-h-full w-auto h-auto object-contain rotate-90 transform-gpu"
-                    style={{
-                      maxHeight: "95vw",
-                      maxWidth: "85vh",
-                    }}
-                  />
+                  <div className="w-full h-full flex items-center justify-center p-4">
+                    <img
+                      src={
+                        imageType === "front"
+                          ? card.frontPicture
+                          : card.backPicture
+                      }
+                      alt={`${
+                        imageType === "front" ? "Front" : "Back"
+                      } of the card`}
+                      className="max-w-full max-h-full w-auto h-auto object-contain"
+                      style={{
+                        width: "auto",
+                        height: "auto",
+                        maxWidth: "95%",
+                        maxHeight: "95%",
+                      }}
+                    />
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
